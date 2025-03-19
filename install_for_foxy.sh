@@ -29,4 +29,7 @@ sudo apt install -y ros-foxy-navigation2
 
 sudo apt install -y ros-foxy-joy-teleop
 
+sudo apt install -y ros-foxy-rqt-tf-tree
+
+
 echo "所有依赖项已安装完成！"
