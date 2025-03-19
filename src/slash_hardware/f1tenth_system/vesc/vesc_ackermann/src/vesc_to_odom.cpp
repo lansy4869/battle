@@ -56,20 +56,27 @@ VescToOdom::VescToOdom(const rclcpp::NodeOptions & options)
   yaw_(0.0)
 {
   // get ROS parameters
-  declare_parameter("odom_frame", odom_frame_);
-  declare_parameter("base_frame", base_frame_);
-  declare_parameter("use_servo_cmd_to_calc_angular_velocity", use_servo_cmd_);
+  odom_frame_ = declare_parameter("odom_frame", odom_frame_);
+  base_frame_ = declare_parameter("base_frame", base_frame_);
+  use_servo_cmd_ = declare_parameter("use_servo_cmd_to_calc_angular_velocity", use_servo_cmd_);
+  
+  declare_parameter<double>("speed_to_erpm_gain", 0.0);
+  declare_parameter<double>("speed_to_erpm_offset", 0.0);
 
-  speed_to_erpm_gain_ = declare_parameter("speed_to_erpm_gain").get<double>();
-  speed_to_erpm_offset_ = declare_parameter("speed_to_erpm_offset").get<double>();
+  speed_to_erpm_gain_ = get_parameter("speed_to_erpm_gain").get_value<double>();
+  speed_to_erpm_offset_ = get_parameter("speed_to_erpm_offset").get_value<double>();
 
   if (use_servo_cmd_) {
-    steering_to_servo_gain_ = declare_parameter("steering_angle_to_servo_gain").get<double>();
-    steering_to_servo_offset_ = declare_parameter("steering_angle_to_servo_offset").get<double>();
-    wheelbase_ = declare_parameter("wheelbase").get<double>();
+    declare_parameter<double>("steering_angle_to_servo_gain", 0.0);
+    declare_parameter<double>("steering_angle_to_servo_offset", 0.0);
+    declare_parameter<double>("wheelbase", 0.0);
+    
+    steering_to_servo_gain_ = get_parameter("steering_angle_to_servo_gain").get_value<double>();
+    steering_to_servo_offset_ = get_parameter("steering_angle_to_servo_offset").get_value<double>();
+    wheelbase_ = get_parameter("wheelbase").get_value<double>();
   }
 
-  declare_parameter("publish_tf", publish_tf_);
+  publish_tf_ = declare_parameter("publish_tf", publish_tf_);
 
   // create odom publisher
   odom_pub_ = create_publisher<Odometry>("odom", 10);
@@ -97,7 +104,7 @@ void VescToOdom::vescStateCallback(const VescStateStamped::SharedPtr state)
   }
 
   // convert to engineering units
-  double current_speed = (-state->state.speed - speed_to_erpm_offset_) / speed_to_erpm_gain_;
+  double current_speed = (state->state.speed - speed_to_erpm_offset_) / speed_to_erpm_gain_;
   if (std::fabs(current_speed) < 0.05) {
     current_speed = 0.0;
   }
