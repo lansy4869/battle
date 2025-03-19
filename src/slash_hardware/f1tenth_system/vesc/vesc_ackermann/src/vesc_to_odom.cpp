@@ -76,7 +76,7 @@ VescToOdom::VescToOdom(const rclcpp::NodeOptions & options)
     wheelbase_ = get_parameter("wheelbase").get_value<double>();
   }
 
-  publish_tf_ = declare_parameter("publish_tf", publish_tf_);
+  // publish_tf_ = declare_parameter("publish_tf", publish_tf_);
 
   // create odom publisher
   odom_pub_ = create_publisher<Odometry>("odom", 10);
