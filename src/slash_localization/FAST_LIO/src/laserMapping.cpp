@@ -1194,7 +1194,7 @@ int main(int argc, char** argv)
     signal(SIGINT, SigHandle);
 
     rclcpp::spin(std::make_shared<LaserMappingNode>());
-
+    printf("?????");
     if (rclcpp::ok())
         rclcpp::shutdown();
     /**************** save map ****************/
