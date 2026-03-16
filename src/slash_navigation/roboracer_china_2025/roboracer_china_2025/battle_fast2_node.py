@@ -59,14 +59,6 @@ class BattleVehicleNode(Node):
         self.dynamic_obs = False
         self.chaoche = False
 
-        # 自适应 PD 控制参数
-        self.base_P = 1.3  # 基础 P 值
-        self.base_D = 0.3  # 基础 D 值
-        self.max_P = 2.0   # 最大 P 值
-        self.min_P = 0.8   # 最小 P 值
-        self.max_D = 0.8   # 最大 D 值
-        self.min_D = 0.2   # 最小 D 值
-
         # === ROS 2 通信配置 ===
         qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -259,23 +251,6 @@ class BattleVehicleNode(Node):
             return True
         else:
             return False 
-
-    def adjust_pd_gains(self, speed, steering_angle):
-        """
-        根据速度和转向角度动态调整 P 和 D 的值。
-        """
-        # 根据速度调整 P 和 D
-        self.P = self.base_P - 0.5 * (speed / 3.0)  # 假设最大速度为 3.0
-        self.D = self.base_D + 0.3 * (speed / 3.0)
-
-        # 根据转向角度调整 P 和 D
-        angle_factor = abs(steering_angle) / (math.pi / 4)  # 转向角度归一化
-        self.P -= 0.3 * angle_factor
-        self.D += 0.2 * angle_factor
-
-        # 限制 P 和 D 的范围
-        self.P = np.clip(self.P, self.min_P, self.max_P)
-        self.D = np.clip(self.D, self.min_D, self.max_D)
 
     # === 核心回调逻辑（完全保持原流程） ===
     def middle_line_callback(self, data):
@@ -619,14 +594,10 @@ class BattleVehicleNode(Node):
             else:
                 angle = -max(math.exp(-max_dis/DIR_DETECT_THRESHOLD),0.7)*(max_dir_index-90)/360 *math.pi + 0.05*(dis_90[0]-dis_90[lenth_dis-1])/(dis_90[0]+dis_90[lenth_dis-1]) 
 
-        # 自适应调整 P 和 D
-        self.adjust_pd_gains(speed=2.0 * (0.3 * math.exp(-np.clip(abs(angle), 0, 0.5)) + 0.7), steering_angle=angle)
-
-        # 应用调整后的 P 和 D
-        steering_angle = self.P * angle + self.D * (angle - self.last_angle)
+        steering_angle = self.P* angle + self.D *(angle-self.last_angle)
         self.last_angle = angle
 
-        speed = 2.0 * (0.3 * math.exp(-np.clip(abs(angle), 0, 0.5)) + 0.7)
+        speed = 2.0*(0.3*math.exp(-np.clip(abs(angle),0,0.5))+0.7)
         
         print("max_dir_index",max_dir_index)
     
